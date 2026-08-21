@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Games for Remote Friends</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #22222f;
+      --border: #2a2a3a;
+      --text: #e8e8f0;
+      --text2: #a0a0b8;
+      --accent: #6c5ce7;
+      --accent2: #a29bfe;
+      --green: #00cec9;
+      --orange: #fdcb6e;
+      --red: #ff7675;
+      --blue: #74b9ff;
+      --card-radius: 12px;
+      --maxw: 1200px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 0;
+    }
+    .container { max-width: var(--maxw); margin: 0 auto; padding: 0 20px; }
+    
+    /* header */
+    header {
+      background: linear-gradient(135deg, #2d1b69 0%, #1a1a24 100%);
+      padding: 60px 0 50px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 8px; background: linear-gradient(90deg, var(--accent2), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    header p { font-size: 1.15rem; color: var(--text2); max-width: 650px; margin: 0 auto; }
+    header .subtitle { margin-top: 12px; font-size: 0.9rem; color: var(--text2); }
+    
+    /* filters */
+    .filters {
+      background: var(--surface);
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .filters .container { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+    .filters input {
+      flex: 1; min-width: 200px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+    .filters input:focus { outline: none; border-color: var(--accent); }
+    .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    
+    /* quick picks */
+    .quick-picks {
+      padding: 30px 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .quick-picks h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--text2); }
+    .qp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+    .qp-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .qp-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .qp-card .name { font-weight: 600; font-size: 1rem; }
+    .qp-card .detail { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+    .qp-card .tags { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+    .qp-card .tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; background: rgba(108,92,231,0.2); color: var(--accent2); }
+    .qp-card .tag.free { background: rgba(0,206,201,0.15); color: var(--green); }
+    .qp-card .tag.paid { background: rgba(255,118,117,0.15); color: var(--red); }
+    
+    /* main list */
+    .games-list { padding: 30px 0; }
+    .games-list h2 { font-size: 1.3rem; margin-bottom: 20px; }
+    .game-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      margin-bottom: 16px;
+      transition: all 0.15s;
+    }
+    .game-card:hover { border-color: var(--accent); }
+    .game-card.hidden { display: none; }
+    .game-card .header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+    .game-card .header-left { flex: 1; }
+    .game-card .name { font-size: 1.3rem; font-weight: 700; }
+    .game-card .name a { color: var(--accent2); text-decoration: none; }
+    .game-card .name a:hover { text-decoration: underline; }
+    .game-card .type-badge { font-size: 0.75rem; padding: 3px 10px; border-radius: 12px; background: rgba(108,92,231,0.15); color: var(--accent2); display: inline-block; margin-top: 4px; }
+    .game-card .meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; }
+    .game-card .meta-item { font-size: 0.85rem; color: var(--text2); }
+    .game-card .meta-item strong { color: var(--text); }
+    .game-card .desc { margin-top: 10px; color: var(--text2); font-size: 0.9rem; line-height: 1.6; }
+    .game-card .pros-cons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+    @media (max-width: 600px) { .game-card .pros-cons { grid-template-columns: 1fr; } }
+    .game-card .pros h4, .game-card .cons h4 { font-size: 0.82rem; margin-bottom: 6px; }
+    .game-card .pros h4 { color: var(--green); }
+    .game-card .cons h4 { color: var(--red); }
+    .game-card .pros ul, .game-card .cons ul { padding-left: 18px; font-size: 0.85rem; color: var(--text2); }
+    .game-card .pros ul li, .game-card .cons ul li { margin-bottom: 3px; }
+    .game-card .links { margin-top: 12px; }
+    .game-card .links a { color: var(--blue); font-size: 0.85rem; text-decoration: none; margin-right: 16px; }
+    .game-card .links a:hover { text-decoration: underline; }
+    
+    /* category sections */
+    .category-section { margin-bottom: 8px; }
+    .category-section h3 {
+      font-size: 1.1rem; font-weight: 700;
+      padding: 12px 0 8px;
+      color: var(--accent2);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .category-section h3:hover { opacity: 0.8; }
+    .category-section h3 .arrow { font-size: 0.8rem; transition: transform 0.2s; }
+    .category-section h3.collapsed .arrow { transform: rotate(-90deg); }
+    .category-section.collapsed .game-card { display: none; }
+    .category-section.collapsed .game-card:first-child { display: block; } /* keep first one visible as hint? no, hide all */
+    
+    /* footer */
+    footer { text-align: center; padding: 30px 0; color: var(--text2); font-size: 0.8rem; border-top: 1px solid var(--border); }
+    footer a { color: var(--accent2); text-decoration: none; }
+    
+    /* scroll to top */
+    .scroll-top {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(108,92,231,0.3);
+      z-index: 999;
+    }
+    .scroll-top.show { display: flex; }
+    
+    /* pricing table */
+    .pricing-summary { background: var(--surface); border: 1px solid var(--border); border-radius: var(--card-radius); padding: 20px; margin-bottom: 30px; }
+    .pricing-summary h3 { margin-bottom: 12px; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+    .pricing-item { padding: 10px 14px; background: var(--surface2); border-radius: 8px; font-size: 0.85rem; }
+    .pricing-item .name { font-weight: 600; }
+    .pricing-item .cost { color: var(--green); }
+    .pricing-item .note { color: var(--text2); font-size: 0.78rem; }
+    
+    @media (max-width: 768px) {
+      header h1 { font-size: 2rem; }
+      .qp-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>🎮 Browser Games</h1>
+    <p>For remote friends & colleagues — all free, all browser-based, no download needed</p>
+    <div class="subtitle">Updated August 2026 • 34 games researched • SFW picks marked</div>
+  </div>
+</header>
+
+<div class="filters" id="filters">
+  <div class="container">
+    <input type="text" id="search" placeholder="Search games...">
+    <div class="filter-btns">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="free">Free Only</button>
+      <button class="filter-btn" data-filter="drawing">Drawing</button>
+      <button class="filter-btn" data-filter="word">Word</button>
+      <button class="filter-btn" data-filter="social">Social Deduction</button>
+      <button class="filter-btn" data-filter="trivia">Trivia/Music</button>
+      <button class="filter-btn" data-filter="board">Board/Card</button>
+      <button class="filter-btn" data-filter="action">Action/FPS</button>
+      <button class="filter-btn" data-filter="coop">Co-op/Platform</button>
+    </div>
+  </div>
+</div>
+
+<div class="quick-picks">
+  <div class="container">
+    <h2>🏆 Quick Picks — Best Free Browser Games for Friends</h2>
+    <div class="qp-grid">
+      <div class="qp-card" data-target="skribbl">
+        <div class="name">Skribbl.io</div>
+        <div class="detail">Draw & guess • Up to 20 players</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Drawing</span></div>
+      </div>
+      <div class="qp-card" data-target="gartic">
+        <div class="name">Gartic Phone</div>
+        <div class="detail">Telephone drawing • Up to 30</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Drawing</span></div>
+      </div>
+      <div class="qp-card" data-target="jklm">
+        <div class="name">JKLM.FUN</div>
+        <div class="detail">BombParty + PopSauce • Up to 100</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Word</span><span class="tag">Trivia</span></div>
+      </div>
+      <div class="qp-card" data-target="codenames">
+        <div class="name">Codenames</div>
+        <div class="detail">Official free web version • 4–8</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Word</span></div>
+      </div>
+      <div class="qp-card" data-target="wavelength">
+        <div class="name">Wavelength Online</div>
+        <div class="detail">Spectrum clue game • Up to 12</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Word</span></div>
+      </div>
+      <div class="qp-card" data-target="spyfall">
+        <div class="name">Spyfall</div>
+        <div class="detail">Social deduction • 3–8 players</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Social</span></div>
+      </div>
+      <div class="qp-card" data-target="scattergories">
+        <div class="name">ScattergoriesOnline</div>
+        <div class="detail">Categories race • 10+ players</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Word</span></div>
+      </div>
+      <div class="qp-card" data-target="bga">
+        <div class="name">BoardGameArena</div>
+        <div class="detail">1,339 board games • Free tier</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Board</span></div>
+      </div>
+      <div class="qp-card" data-target="shell">
+        <div class="name">Shell Shockers</div>
+        <div class="detail">Egg FPS w/ friends • Free</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Action</span></div>
+      </div>
+      <div class="qp-card" data-target="pokernow">
+        <div class="name">Poker Now</div>
+        <div class="detail">Poker w/ friends • Up to 10</div>
+        <div class="tags"><span class="tag free">Free</span><span class="tag">Card</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  
+  <!-- Pricing Summary -->
+  <div class="pricing-summary" id="pricing">
+    <h3>💰 Pricing at a Glance</h3>
+    <div class="pricing-grid">
+      <div class="pricing-item"><span class="name">Skribbl.io</span> <span class="cost">Free</span></div>
+      <div class="pricing-item"><span class="name">Gartic Phone</span> <span class="cost">Free</span></div>
+      <div class="pricing-item"><span class="name">JKLM.FUN</span> <span class="cost">Free (donation)</span></div>
+      <div class="pricing-item"><span class="name">Codenames</span> <span class="cost">Free</span></div>
+      <div class="pricing-item"><span class="name">Wavelength Online</span> <span class="cost">Free</span></div>
+      <div class="pricing-item"><span class="name">Spyfall</span> <span class="cost">Free</span></div>
+      <div class="pricing-item"><span class="name">GeoGuessr</span> <span class="cost">Free tier / Pro ~$5.99/mo</span></div>
+      <div class="pricing-item"><span class="name">BoardGameArena</span> <span class="cost">Free tier / Premium ~$42/yr</span></div>
+      <div class="pricing-item"><span class="name">Jackbox</span> <span class="cost">Paid packs $24.99–$29.99</span><br><span class="note">Host buys, guests play free</span></div>
+      <div class="pricing-item"><span class="name">TriviaMaker</span> <span class="cost">Free tier / Premium from $6.99/mo</span></div>
+      <div class="pricing-item"><span class="name">CardzMania</span> <span class="cost">Free</span></div>
+      <div class="pricing-item"><span class="name">Poker Now</span> <span class="cost">Free</span></div>
+    </div>
+  </div>
+
+  <!-- Games List -->
+  <div class="games-list" id="games-list">
+    <h2>🔍 All Games</h2>
+
+    <!-- ===== DRAWING ===== -->
+    <div class="category-section" data-category="drawing">
+      <h3 onclick="toggleCategory(this)"><span class="arrow">▼</span> 🎨 Drawing Games</h3>
+
+      <div class="game-card" id="skribbl">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://skribbl.io" target="_blank">Skribbl.io</a></div>
+            <span class="type-badge">Drawing</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Up to 20</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong></span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Invite link</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> ❌</span>
+        </div>
+        <div class="desc">Pictionary online. One draws, others guess in chat. Custom word lists, private rooms, moderation tools (kick/ban/votekick). Game length configurable 5–30 min. 25 languages.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Dead simple, zero install</li><li>Free forever, no account</li><li>Custom word lists</li><li>Up to 20 in custom rooms</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>No built-in voice chat</li><li>Basic drawing tools</li><li>Ads</li><li>User-drawn content = not guaranteed SFW</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://skribbl.io" target="_blank">🌐 Play Skribbl.io</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="gartic">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://garticphone.com" target="_blank">Gartic Phone</a></div>
+            <span class="type-badge">Drawing / Telephone</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>4–30</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong></span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room code/QR</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> ❌</span>
+        </div>
+        <div class="desc">Telephone game meets Pictionary. Write sentence → next draws → next guesses → chain. Parallel chains (everyone starts at once). Modes: Normal, Knock-Off, Animation, Icebreaker, Exquisite Corpse, Co-op. Save as GIF.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Free, no install, phone+desktop</li><li>Big groups (4–30)</li><li>Turn-parallel = no waiting</li><li>Deep mode list, 40+ languages</li><li>4.8★ on Google Play</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>No voice chat (pair Discord/Zoom)</li><li>Mobile drawing clunky</li><li>User-generated prompts = not guaranteed SFW</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://garticphone.com" target="_blank">🌐 Play Gartic Phone</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="drawize">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://drawize.com" target="_blank">Drawize</a></div>
+            <span class="type-badge">Drawing</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Up to 100</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong> (ads) / Ad-free from $9</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room code/link</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> ❌</span>
+        </div>
+        <div class="desc">Polished Pictionary with Teams Mode (co-op groups), Spectator Mode (streaming), Drawize Phone (telephone), CopyCatAI. Class/event passes available for large groups.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Up to 100 players</li><li>Teams + Spectator modes</li><li>Classroom/teacher tools</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Ads on free tier</li><li>Premium-gated features</li><li>Less known than Skribbl</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://drawize.com" target="_blank">🌐 Play Drawize</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== WORD ===== -->
+    <div class="category-section" data-category="word">
+      <h3 onclick="toggleCategory(this)"><span class="arrow">▼</span> 🗣️ Word Games</h3>
+
+      <div class="game-card" id="jklm">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://jklm.fun" target="_blank">JKLM.FUN</a></div>
+            <span class="type-badge">Word / Trivia</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 BombParty <strong>2–16</strong> • PopSauce <strong>2–100</strong></span>
+          <span class="meta-item">💰 <strong>Free</strong> (donation-funded)</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room code</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> ❌</span>
+        </div>
+        <div class="desc">Three games: <strong>BombParty</strong> — type words containing given syllable before bomb explodes. <strong>PopSauce</strong> — trivia/pop-culture quiz (filter by theme + difficulty). <strong>Master of the Grid</strong> — trivia game show (up to 83 players). Has Discord integration, BirdBot (1v1 bot).</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>100% free, no account</li><li>Easy private rooms</li><li>BombParty up to 16, PopSauce up to 100</li><li>Active Discord community</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>BombParty rewards big vocab</li><li>Only word + trivia (no drawing/music)</li><li>Dictionary secret + strict</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://jklm.fun" target="_blank">🌐 Play JKLM.FUN</a>
+          <a href="https://jklm.fun/faq" target="_blank">📖 FAQ</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="codenames">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://codenames.game" target="_blank">Codenames Online</a></div>
+            <span class="type-badge">Word / Party</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>4–8</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong> (official CGE, no ads)</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room URL</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> ❌</span>
+        </div>
+        <div class="desc">Official Czech Games Edition browser version. Two teams, Spymaster gives 1-word clue, operatives guess tiles. Hit assassin = instant loss. Daily puzzle mode. 2016 Spiel des Jahres winner.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Officially licensed, free, no ads</li><li>Perfect social/party game</li><li>High replay value</li><li>Daily puzzle mode</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Need external voice chat</li><li>Downtime between turns</li><li>Web wordlist smaller than physical deck</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://codenames.game" target="_blank">🌐 Play Codenames</a>
+          <a href="https://kodenames.io" target="_blank">🔄 Alt: Kodenames.io (more features)</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="wavelength">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://wavelengthonline.io" target="_blank">Wavelength Online</a></div>
+            <span class="type-badge">Word / Spectrum</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>2–12</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong> forever</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room code</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> ❌ (optional for stats)</span>
+        </div>
+        <div class="desc">Psychic sees hidden target on spectrum (Hot↔Cold), gives 1-word clue. Others guess where target lands. 3 modes: One Psychic, One Guesser, Teams. Custom prompts. <em>⚠️ Unofficial fan recreation (not CMYK Games).</em></div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Free, no account, no download</li><li>Private lobby + public games</li><li>3 game modes, custom prompts</li><li>Local pass-and-play</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Unofficial clone</li><li>Digital dial not same as physical board</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://wavelengthonline.io" target="_blank">🌐 Play Wavelength Online</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="scattergories">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://scattergoriesonline.net" target="_blank">ScattergoriesOnline</a></div>
+            <span class="type-badge">Word / Categories</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>10+</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong></span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Invite link</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> Free login for some features</span>
+        </div>
+        <div class="desc">Classic Scattergories. Get letter + categories, write unique answers before timer. Custom categories, skip letters, Game Master mode, AI bots. 25M+ games played, 40 languages.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Closest thing to real online Scattergories</li><li>Play-by-link perfect over Zoom/Discord</li><li>Customizable rules</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Ugly site</li><li>Some features need login</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://scattergoriesonline.net" target="_blank">🌐 Play ScattergoriesOnline</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="stopots">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://stopots.com" target="_blank">StopotS</a></div>
+            <span class="type-badge">Word / Categories</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Large</strong> rooms</span>
+          <span class="meta-item">💰 <strong>Free</strong> (ad-supported)</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room code</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅ (10M+ downloads, 4.2★)</span>
+        </div>
+        <div class="desc">Fast Scattergories-style word race. 20 categories per round, type answers fast. Real-time competitive. From the same devs as Gartic Phone (Onrizon).</div>
+        <div class="links">
+          <a href="https://stopots.com" target="_blank">🌐 Play StopotS</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="letterjam">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://letterjam.game" target="_blank">LetterJam</a></div>
+            <span class="type-badge">Word / Co-op</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>2–6</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong></span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room link</span>
+        </div>
+        <div class="desc">Cooperative word game from Czech Games Edition (same as Codenames). Work together to find the secret word.</div>
+        <div class="links">
+          <a href="https://letterjam.game" target="_blank">🌐 Play LetterJam</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SOCIAL DEDUCTION ===== -->
+    <div class="category-section" data-category="social">
+      <h3 onclick="toggleCategory(this)"><span class="arrow">▼</span> 🕵️ Social Deduction Games</h3>
+
+      <div class="game-card" id="spyfall">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://spyfall.tannerkrewson.com" target="_blank">Spyfall Online</a></div>
+            <span class="type-badge">Social Deduction</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>3–8</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong> (MIT open source)</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room code</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> ❌</span>
+        </div>
+        <div class="desc">One spy, others get location + role. Spy doesn't know location. Players ask questions, expose spy. Includes Spyfall 1 + 2 location packs + "all players are spies" mode. 30+ languages. Default timer 8 min.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Free, open source, modern</li><li>Private room codes + multiple location packs</li><li>Mobile-friendly, 30+ languages</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Needs friends (no random match)</li><li>Not official license</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://spyfall.tannerkrewson.com" target="_blank">🌐 Play Spyfall</a>
+          <a href="https://spyfallx.com" target="_blank">🔄 Alt: SpyfallX</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="betrayal">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://betrayal.io" target="_blank">Betrayal.io</a></div>
+            <span class="type-badge">Social Deduction</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>6–12</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong></span>
+          <span class="meta-item">🖥️ <strong>Browser</strong> ✅</span>
+        </div>
+        <div class="desc">"Inspired by Werewolf, Town of Salem, Among Us." Mystery game where players work together and one betrays. Pure browser, fast games.</div>
+        <div class="links">
+          <a href="https://betrayal.io" target="_blank">🌐 Play Betrayal.io</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="epicmafia">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://epicmafia.com" target="_blank">Epic Mafia</a></div>
+            <span class="type-badge">Social Deduction / Mafia</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>9–16</strong> players (varies)</span>
+          <span class="meta-item">💰 <strong>Free</strong></span>
+          <span class="meta-item">🖥️ <strong>Browser</strong> ✅</span>
+        </div>
+        <div class="desc">Online expansion of classic Mafia. 220 unique roles, thousands of table setups, 2M+ games played. Mini-games: Liars Dice, Tiramisu, Ghost. Trophies/community respect system.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Massive role depth</li><li>Competitive Mafia done right</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Text-based, punishing learning curve</li><li>Not casual-friendly</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://epicmafia.com" target="_blank">🌐 Play Epic Mafia</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TRIVIA ===== -->
+    <div class="category-section" data-category="trivia">
+      <h3 onclick="toggleCategory(this)"><span class="arrow">▼</span> 🎵 Trivia & Music Games</h3>
+
+      <div class="game-card" id="triviamaker">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://triviamaker.com" target="_blank">TriviaMaker</a></div>
+            <span class="type-badge">Trivia</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 Free <strong>20</strong> • Premium <strong>200</strong> • Enterprise <strong>2,000</strong></span>
+          <span class="meta-item">💰 <strong>Free tier</strong> / Premium $6.99/mo</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Join code/QR</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+        </div>
+        <div class="desc">7 game-show styles: Grid, List, Multiple Choice, Wheel of Fortune, Tic-Tac, Hangman, Fusion. AI question generator. Built for parties/corporate/pubs (not classroom).</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Built for parties, not classroom</li><li>AI question gen</li><li>Massive player ceiling</li><li>No app/account for players</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Free tier throttled (20 players)</li><li>Premium needed for real scale</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://triviamaker.com" target="_blank">🌐 Play TriviaMaker</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="kahoot">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://kahoot.com" target="_blank">Kahoot!</a></div>
+            <span class="type-badge">Trivia / Quiz</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 Free tier ~10–20 (unconfirmed)</span>
+          <span class="meta-item">💰 <strong>Free tier</strong> / Paid from $3/mo</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Game PIN</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+        </div>
+        <div class="desc">The classic quiz game. Host creates quiz on kahoot.com, players join at kahoot.it with PIN. Millions of community quizzes. Two-screen game (host screen + player devices).</div>
+        <div class="links">
+          <a href="https://kahoot.com" target="_blank">🌐 Create quizzes</a>
+          <a href="https://kahoot.it" target="_blank">🎮 Join a game</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="geoguessr">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://geoguessr.com" target="_blank">GeoGuessr</a></div>
+            <span class="type-badge">Geography / Trivia</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Free tier / Pro</strong> private parties</span>
+          <span class="meta-item">💰 Free tier (limited) / <strong>Pro ~$5.99/mo</strong></span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Pro only</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅ (4.5★ App Store)</span>
+        </div>
+        <div class="desc">Dropped in Street View panorama, guess location on map. Pro tier unlocks private parties (Pro can invite free accounts). Also on Steam, iOS, Android.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Hugely popular, instantly fun</li><li>Cross-platform</li><li>Pro can invite free players</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Private rooms behind paywall</li><li>Free tier very limited</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://geoguessr.com" target="_blank">🌐 Play GeoGuessr</a>
+          <br><span style="font-size:0.8rem;color:var(--text2)">Free alternatives: </span>
+          <a href="https://openguessr.com" target="_blank" style="font-size:0.8rem">OpenGuessr</a>
+          <a href="https://geoduels.io" target="_blank" style="font-size:0.8rem">GeoDuels</a>
+          <a href="https://worldguessr.com" target="_blank" style="font-size:0.8rem">WorldGuessr</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== BOARD / CARD ===== -->
+    <div class="category-section" data-category="board">
+      <h3 onclick="toggleCategory(this)"><span class="arrow">▼</span> 🎲 Board & Card Games</h3>
+
+      <div class="game-card" id="bga">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://boardgamearena.com" target="_blank">BoardGameArena</a></div>
+            <span class="type-badge">Board Games</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>1,339 games</strong> (player count varies per game)</span>
+          <span class="meta-item">💰 <strong>Free tier</strong> / Premium ~$42/yr</span>
+          <span class="meta-item">🔒 <strong>Private table</strong> ✅</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">⏱️ Real-time + <strong>turn-based (async)</strong></span>
+        </div>
+        <div class="desc">The biggest browser board-game platform (10.7M players, 9M games/month). Automated rules engine, ranked/Elo, tournaments. Free tier gives hundreds of games. Premium unlocks all games + voice/video chat.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Huge library, huge player base</li><li>Automated rules (no manual tracking)</li><li>Real-time + async modes</li><li>Free tier genuinely useful</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Best games behind Premium</li><li>2D simplified (no 3D physics)</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://boardgamearena.com" target="_blank">🌐 Play BoardGameArena</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="cardzmania">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://cardzmania.com" target="_blank">CardzMania</a></div>
+            <span class="type-badge">Card Games</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Up to 12</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong> (no ads, no signup)</span>
+          <span class="meta-item">🔒 <strong>Private table</strong> ✅</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+        </div>
+        <div class="desc">Real rule engine card games with bots filling empty seats. Hearts, Spades, Euchre, Crazy Eights, Cribbage, Gin Rummy, Texas Hold'em. Tons of house-rule variants.</div>
+        <div class="links">
+          <a href="https://cardzmania.com" target="_blank">🌐 Play CardzMania</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="pokernow">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://pokernow.com" target="_blank">Poker Now</a></div>
+            <span class="type-badge">Poker</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Up to 10</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong> (play-money)</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room link</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">🎥 <strong>Built-in video chat</strong> ✅</span>
+        </div>
+        <div class="desc">Poker with friends. No account, no download. Share room link, friends join from browser. Built-in video+voice chat. Double Board, PLO, time bank, session ledger.</div>
+        <div class="links">
+          <a href="https://pokernow.com" target="_blank">🌐 Play Poker Now</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="playingcards">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://playingcards.io" target="_blank">PlayingCards.io</a></div>
+            <span class="type-badge">Card Games / Virtual Tabletop</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Unlimited</strong> (recommend ≤8)</span>
+          <span class="meta-item">💰 <strong>Free</strong> / Paid Premium</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Room code</span>
+        </div>
+        <div class="desc">Virtual tabletop — no rules enforced, players keep score themselves. Best for Uno, Crazy Eights, or any house-rule game. Flexible sandbox for any card game.</div>
+        <div class="links">
+          <a href="https://playingcards.io" target="_blank">🌐 Play PlayingCards.io</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="trickster">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://trickstercards.com" target="_blank">Trickster Cards</a></div>
+            <span class="type-badge">Card Games</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>4</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong></span>
+          <span class="meta-item">🔒 <strong>Private game</strong> ✅</span>
+          <span class="meta-item">🎥 <strong>Video chat</strong> ✅ Built-in</span>
+        </div>
+        <div class="desc">Hearts, Spades, Euchre, Cribbage. Clean UI, enforced rules, built-in video chat. Polished experience for classic card players.</div>
+        <div class="links">
+          <a href="https://trickstercards.com" target="_blank">🌐 Play Trickster</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="tabletopia">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://tabletopia.com" target="_blank">Tabletopia</a></div>
+            <span class="type-badge">Board Games / Sandbox</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>2,500+</strong> licensed games</span>
+          <span class="meta-item">💰 <strong>Free tier</strong> / Premium subscription</span>
+          <span class="meta-item">🖥️ <strong>Browser</strong> ✅ + Steam/apps</span>
+          <span class="meta-item">⚙️ <strong>Rules engine</strong> ❌ Sandbox (enforce yourself)</span>
+        </div>
+        <div class="desc">Digital sandbox for playing board games. No automated rules — read rulebook, play like real table. Browser-based, free tier gives access to 2,500+ games (some need Premium).</div>
+        <div class="links">
+          <a href="https://tabletopia.com" target="_blank">🌐 Play Tabletopia</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="pretendxyzzy">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://pretendyoure.xyz" target="_blank">Pretend You're Xyzzy</a></div>
+            <span class="type-badge">Cards Against Humanity clone</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Up to 8+</strong> per game</span>
+          <span class="meta-item">💰 <strong>Free</strong> (open source)</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Game link</span>
+          <span class="meta-item">🃏 <strong>Custom decks</strong> ✅ Fully supported</span>
+        </div>
+        <div class="desc">The go-to online Cards Against Humanity clone. Free, browser, open source. Custom card decks supported. Official CAH FAQ links here as the fan server.</div>
+        <div class="links">
+          <a href="https://pretendyoure.xyz" target="_blank">🌐 Play Pretend You're Xyzzy</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ACTION ===== -->
+    <div class="category-section" data-category="action">
+      <h3 onclick="toggleCategory(this)"><span class="arrow">▼</span> 🔫 Action / FPS Games</h3>
+
+      <div class="game-card" id="shell">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://shellshock.io" target="_blank">Shell Shockers</a></div>
+            <span class="type-badge">FPS / Action</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Host sets limit</strong> (private rooms)</span>
+          <span class="meta-item">💰 <strong>Free</strong> (ad-supported)</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Invite link + code</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> ❌</span>
+        </div>
+        <div class="desc">Cartoony egg FPS. Fast, silly, easy for mixed-skill friend groups. 50+ maps, 4 modes (FFA, Teams, King of the Coop, Capsula). Create private room → share link → play. Mirror: shellgame.me.</div>
+        <div class="pros-cons">
+          <div class="pros"><h4>✅ Pros</h4><ul><li>Easiest FPS for friends</li><li>Free, no login</li><li>50+ maps, 4 modes</li><li>Private room via invite link</li></ul></div>
+          <div class="cons"><h4>⚠️ Cons</h4><ul><li>Ad interruptions</li><li>Egg-goofy (not serious FPS)</li></ul></div>
+        </div>
+        <div class="links">
+          <a href="https://shellshock.io" target="_blank">🌐 Play Shell Shockers</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="krunker">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://krunker.io" target="_blank">Krunker.io</a></div>
+            <span class="type-badge">FPS / Action</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Public lobbies</strong> (large) / Custom games host-set</span>
+          <span class="meta-item">💰 <strong>Free</strong> (ads + cosmetic store)</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Custom games + clans</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+        </div>
+        <div class="desc">Fast 3D browser FPS. Millions of players. Custom/community games, ranked 4v4, clans. Co-op modes: Zombies, Hardpoint, CTF with friends. Runs in browser, no install.</div>
+        <div class="links">
+          <a href="https://krunker.io" target="_blank">🌐 Play Krunker.io</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="surviv">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://surviv.io" target="_blank">Surviv.io</a></div>
+            <span class="type-badge">Battle Royale / Action</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Dozens</strong> per match (solo/duo/squad)</span>
+          <span class="meta-item">💰 <strong>Free</strong> (ads)</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Team invite code</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+        </div>
+        <div class="desc">2D top-down battle royale. Still running (Aug 2026, backed by Kongregate). "Survivr Pass" live. Squad up with friends via invite code. Low-end hardware friendly.</div>
+        <div class="links">
+          <a href="https://surviv.io" target="_blank">🌐 Play Surviv.io</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CO-OP / PLATFORM ===== -->
+    <div class="category-section" data-category="coop">
+      <h3 onclick="toggleCategory(this)"><span class="arrow">▼</span> 🎮 Co-op & Platform Games</h3>
+
+      <div class="game-card" id="papergames">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://papergames.io" target="_blank">Papergames.io</a></div>
+            <span class="type-badge">2-player Classics / Tournament</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>2</strong> (1v1) / <strong>Up to 256</strong> (Gruppo tournaments)</span>
+          <span class="meta-item">💰 <strong>Free</strong> core / Gruppo paid</span>
+          <span class="meta-item">🔒 <strong>Private room</strong> ✅ Shared link</span>
+          <span class="meta-item">📱 <strong>Mobile</strong> ✅</span>
+        </div>
+        <div class="desc">Battleship, Tic Tac Toe, Connect 4, Gomoku, Chess, Checkers. Play live with friend via link, or run tournaments (single/double elim, round robin, Swiss). Kid-safe, inclusive, privacy-preserving.</div>
+        <div class="links">
+          <a href="https://papergames.io" target="_blank">🌐 Play Papergames.io</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="saszombie">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://co-op.gg/web" target="_blank">SAS: Zombie Assault 4</a></div>
+            <span class="type-badge">Co-op / Zombie Shooter</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Up to 4</strong> players</span>
+          <span class="meta-item">💰 <strong>Free</strong></span>
+          <span class="meta-item">🖥️ <strong>Browser</strong> ✅ (NinjaKiwi)</span>
+        </div>
+        <div class="desc">Top-down twin-stick zombie co-op shooter. Class trees (Assault/Heavy/Medic). Shared objectives + loot. Room-code friendly. Deepest combat co-op in browser.</div>
+        <div class="links">
+          <a href="https://co-op.gg/web" target="_blank">🌐 Play SAS Zombie Assault 4</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="bloons">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://co-op.gg/web" target="_blank">Bloons TD 5</a></div>
+            <span class="type-badge">Tower Defense / Co-op</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>2</strong> players co-op</span>
+          <span class="meta-item">💰 <strong>Free</strong> (browser)</span>
+        </div>
+        <div class="desc">Classic tower defense. 2-player co-op in browser. Pool resources, build defense together, survive waves. One of the top-rated browser co-op games.</div>
+        <div class="links">
+          <a href="https://co-op.gg/web" target="_blank">🌐 Play Bloons TD 5</a>
+        </div>
+      </div>
+
+      <div class="game-card" id="poki">
+        <div class="header">
+          <div class="header-left">
+            <div class="name"><a href="https://www.poki.com/en/multiplayer" target="_blank">Poki Multiplayer</a></div>
+            <span class="type-badge">Game Portal / Various</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="meta-item">👥 <strong>Varies</strong> per game</span>
+          <span class="meta-item">💰 <strong>Free</strong> (ad-supported)</span>
+          <span class="meta-item">🖥️ <strong>Browser</strong> ✅</span>
+          <span class="meta-item">📝 <strong>Account needed</strong> ❌</span>
+        </div>
+        <div class="desc">Huge free browser game portal with dedicated multiplayer section. Includes: Smash Karts, Monkey Tag IO, Escape From Spider, Tag, G-Switch 4, Rocket Soccer Derby, and many more .io-style games.</div>
+        <div class="links">
+          <a href="https://www.poki.com/en/multiplayer" target="_blank">🌐 Browse Poki Multiplayer</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>🎮 Browser Games for Remote Friends — <a href="https://github.com/edward-ong-tiliter" target="_blank">Research by edward-ong-tiliter</a></p>
+    <p>All prices verified August 2026. Sources include official game sites, Wikipedia, and direct page fetches.</p>
+  </div>
+</footer>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  // Filter + search
+  const searchInput = document.getElementById('search');
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const gameCards = document.querySelectorAll('.game-card');
+  let activeFilter = 'all';
+
+  function applyFilters() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    
+    gameCards.forEach(card => {
+      const text = card.textContent.toLowerCase();
+      const category = card.closest('.category-section');
+      const catType = category ? category.dataset.category : '';
+      
+      const matchesSearch = searchTerm === '' || text.includes(searchTerm);
+      const matchesFilter = activeFilter === 'all' || catType === activeFilter;
+      
+      card.classList.toggle('hidden', !(matchesSearch && matchesFilter));
+    });
+
+    // Show/hide category sections based on visible children
+    document.querySelectorAll('.category-section').forEach(section => {
+      const visible = Array.from(section.querySelectorAll('.game-card')).some(c => !c.classList.contains('hidden'));
+      section.style.display = visible ? '' : 'none';
+    });
+  }
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  searchInput.addEventListener('input', applyFilters);
+
+  // Quick pick cards scroll to game
+  document.querySelectorAll('.qp-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const target = document.getElementById(card.dataset.target);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.style.borderColor = 'var(--accent)';
+        setTimeout(() => target.style.borderColor = '', 2000);
+      }
+    });
+  });
+
+  // Category collapse/expand
+  window.toggleCategory = function(header) {
+    const section = header.closest('.category-section');
+    section.classList.toggle('collapsed');
+    header.classList.toggle('collapsed');
+  };
+
+  // Scroll-to-top button
+  const scrollBtn = document.getElementById('scrollTop');
+  window.addEventListener('scroll', () => {
+    scrollBtn.classList.toggle('show', window.scrollY > 400);
+  });
+
+  // Apply filters on load
+  applyFilters();
+</script>
+
+</body>
+</html>
